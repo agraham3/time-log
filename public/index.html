@@ -15,7 +15,7 @@
       <h2>Add time entry</h2>
       <form id="entry-form">
         <div class="grid">
-          <label>Date <input required type="date" name="date" /></label>
+          <label>Date <input required type="date" name="date" id="entry-date" /></label>
           <label>Start Time <input type="time" name="time_start" /></label>
           <label>End Time <input type="time" name="time_end" /></label>
           <label>Minutes (if no start/end) <input type="number" min="0" name="minutes" /></label>
@@ -38,11 +38,17 @@
     </section>
 
     <section class="card">
-      <h2>Weekly report</h2>
+      <h2>Reports</h2>
+      <div class="tabs" role="tablist" aria-label="Report views">
+        <button class="tab-button active" id="weekly-tab" data-tab="weekly" role="tab" aria-selected="true" type="button">Weekly Summary</button>
+        <button class="tab-button" id="raw-tab" data-tab="raw" role="tab" aria-selected="false" type="button">Raw CSV Data</button>
+      </div>
+
+      <section id="weekly-view" class="tab-panel">
       <div class="inline-controls">
         <label>Week Start <input id="week-start" type="date" /></label>
         <button id="load-report" type="button">Load Weekly Report</button>
-        <button id="download-report" type="button">Download CSV</button>
+        <button id="download-report" type="button">Download Weekly CSV</button>
       </div>
       <p id="report-message" class="message"></p>
       <div id="report-summary"></div>
@@ -58,6 +64,29 @@
         </thead>
         <tbody></tbody>
       </table>
+      </section>
+
+      <section id="raw-view" class="tab-panel hidden">
+        <div class="inline-controls">
+          <button id="load-raw" type="button">Load All CSV Data</button>
+          <button id="download-raw" type="button">Download Full CSV</button>
+        </div>
+        <p id="raw-message" class="message"></p>
+        <table id="raw-table" class="hidden">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Task</th>
+              <th>Minutes</th>
+              <th>Billable</th>
+              <th>Client</th>
+              <th>Notes</th>
+              <th>AI Minutes</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
     </section>
   </main>
   <script src="/app.js"></script>

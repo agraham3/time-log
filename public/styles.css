@@ -45,6 +45,23 @@ button {
   align-items: end;
   flex-wrap: wrap;
 }
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.tab-button {
+  border: 1px solid #98a2b3;
+  background: #f2f4f7;
+}
+.tab-button.active {
+  background: #1570ef;
+  border-color: #1570ef;
+  color: #fff;
+}
+.tab-panel {
+  margin-top: 0.5rem;
+}
 .hidden {
   display: none;
 }
