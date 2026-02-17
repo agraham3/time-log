@@ -44,6 +44,24 @@ function parseTime(date, timeString, fieldName) {
   return new Date(`${date}T${trimmed}:00`);
 }
 
+function getEntryMinutes(entry) {
+  const date = String(entry.date ?? '').trim();
+  const startInput = String(entry.time_start ?? '').trim();
+  const endInput = String(entry.time_end ?? '').trim();
+
+  if (startInput && endInput && date) {
+    const start = parseTime(date, startInput, 'Start time');
+    const end = parseTime(date, endInput, 'End time');
+    if (end <= start) {
+      throw new Error('End time must be after start time.');
+    }
+
+    return Math.round((end - start) / 60000);
+  }
+
+  return parseMinutes(entry.minutes, 'Minutes') ?? 0;
+}
+
 function escapeCsvValue(value) {
   const content = String(value ?? '');
   if (content.includes('"') || content.includes(',') || content.includes('\n')) {
@@ -127,13 +145,7 @@ function normalizeEntry(payload) {
       throw new Error('Both start and end times are required when one is provided.');
     }
 
-    const start = parseTime(date, startInput, 'Start time');
-    const end = parseTime(date, endInput, 'End time');
-    if (end <= start) {
-      throw new Error('End time must be after start time.');
-    }
-
-    calculatedMinutes = Math.round((end - start) / 60000);
+    calculatedMinutes = getEntryMinutes({ date, time_start: startInput, time_end: endInput });
   }
 
   if (calculatedMinutes === null) {
@@ -141,12 +153,13 @@ function normalizeEntry(payload) {
   }
 
   const aiMinutes = parseMinutes(payload.ai_minutes, 'AI minutes') ?? 0;
+  const minutesToSave = startInput && endInput ? '' : String(calculatedMinutes);
 
   return {
     date,
     time_start: startInput,
     time_end: endInput,
-    minutes: String(calculatedMinutes),
+    minutes: minutesToSave,
     task,
     notes,
     billable: String(billable),
@@ -184,7 +197,7 @@ function summarizeWeek(entries, weekStart) {
   let nonBillableMinutes = 0;
 
   for (const entry of inWeek) {
-    const minutes = Number(entry.minutes) || 0;
+    const minutes = getEntryMinutes(entry);
     if (entry.billable === 'true') {
       const client = (entry.client_name || 'UNKNOWN').trim().toLowerCase();
       byClient[client] = (byClient[client] || 0) + minutes;
@@ -211,6 +224,7 @@ function summarizeWeek(entries, weekStart) {
 module.exports = {
   REQUIRED_HEADERS,
   formatCsvRow,
+  getEntryMinutes,
   normalizeEntry,
   parseCsv,
   summarizeWeek

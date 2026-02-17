@@ -3,6 +3,9 @@ const entryDateInput = document.querySelector('#entry-date');
 const billableCheckbox = document.querySelector('#billable');
 const clientLabel = document.querySelector('#client-label');
 const clientInput = document.querySelector('#client-name');
+const startTimeInput = document.querySelector('#time-start');
+const endTimeInput = document.querySelector('#time-end');
+const minutesInput = document.querySelector('#entry-minutes');
 const entryMessage = document.querySelector('#entry-message');
 const reportMessage = document.querySelector('#report-message');
 const rawMessage = document.querySelector('#raw-message');
@@ -49,6 +52,33 @@ function formatHours(minutes) {
   return (value / 60).toFixed(2);
 }
 
+function toMinutes(entry) {
+  const date = String(entry.date || '').trim();
+  const start = String(entry.time_start || '').trim();
+  const end = String(entry.time_end || '').trim();
+
+  if (date && start && end) {
+    const startDate = new Date(`${date}T${start}:00`);
+    const endDate = new Date(`${date}T${end}:00`);
+    if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime()) && endDate > startDate) {
+      return Math.round((endDate - startDate) / 60000);
+    }
+  }
+
+  return Number(entry.minutes) || 0;
+}
+
+function syncTimeInputs() {
+  const hasStart = Boolean(startTimeInput.value);
+  const hasEnd = Boolean(endTimeInput.value);
+  const useTimes = hasStart || hasEnd;
+
+  minutesInput.disabled = useTimes;
+  if (useTimes) {
+    minutesInput.value = '';
+  }
+}
+
 function initializeDefaults() {
   const today = getToday();
   entryDateInput.value = today;
@@ -78,6 +108,9 @@ billableCheckbox.addEventListener('change', () => {
   if (!show) clientInput.value = '';
 });
 
+startTimeInput.addEventListener('input', syncTimeInputs);
+endTimeInput.addEventListener('input', syncTimeInputs);
+
 entryForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const formData = new FormData(entryForm);
@@ -99,6 +132,7 @@ entryForm.addEventListener('submit', async (event) => {
     entryDateInput.value = getToday();
     rawDataLoaded = false;
     billableCheckbox.dispatchEvent(new Event('change'));
+    syncTimeInputs();
   } catch (error) {
     setMessage(entryMessage, error.message, 'error');
   }
@@ -118,26 +152,30 @@ async function loadWeeklyReport() {
 
     setMessage(reportMessage, 'Weekly report loaded.', 'success');
     const billableByClientLines = data.billable_by_client.length
-      ? data.billable_by_client.map((row) => `<li>${row.client_name}: ${formatHours(row.minutes)}h</li>`).join('')
+      ? data.billable_by_client.map((row) => `<li>${row.client_name}: ${row.minutes} minutes (${formatHours(row.minutes)}h)</li>`).join('')
       : '<li>None</li>';
 
     reportSummary.innerHTML = `
       <p><strong>Range:</strong> ${data.week_start} to ${data.week_end}</p>
       <p><strong>Non-billable total:</strong> ${data.non_billable_minutes} minutes (${formatHours(data.non_billable_minutes)}h)</p>
-      <p><strong>Billable total:</strong> ${data.billable_minutes} minutes</p>
+      <p><strong>Billable total:</strong> ${data.billable_minutes} minutes (${formatHours(data.billable_minutes)}h)</p>
       <p><strong>Billable by client:</strong></p>
       <ul>${billableByClientLines}</ul>
     `;
 
-    reportBody.innerHTML = data.entries.map((entry) => `
+    reportBody.innerHTML = data.entries.map((entry) => {
+      const minutes = toMinutes(entry);
+      return `
       <tr>
         <td>${entry.date}</td>
         <td>${entry.task}</td>
-        <td>${entry.minutes}</td>
+        <td>${minutes}</td>
+        <td>${formatHours(minutes)}</td>
         <td>${entry.billable}</td>
         <td>${entry.client_name}</td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
 
     reportTable.classList.toggle('hidden', data.entries.length === 0);
   } catch (error) {
@@ -151,17 +189,21 @@ async function loadRawData() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Failed to load raw CSV data.');
 
-    rawBody.innerHTML = data.entries.map((entry) => `
+    rawBody.innerHTML = data.entries.map((entry) => {
+      const minutes = toMinutes(entry);
+      return `
       <tr>
         <td>${entry.date}</td>
         <td>${entry.task}</td>
-        <td>${entry.minutes}</td>
+        <td>${minutes}</td>
+        <td>${formatHours(minutes)}</td>
         <td>${entry.billable}</td>
         <td>${entry.client_name}</td>
         <td>${entry.notes}</td>
         <td>${entry.ai_minutes}</td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
 
     rawTable.classList.toggle('hidden', data.entries.length === 0);
     rawDataLoaded = true;
@@ -195,3 +237,4 @@ tabButtons.forEach((button) => {
 
 initializeDefaults();
 billableCheckbox.dispatchEvent(new Event('change'));
+syncTimeInputs();

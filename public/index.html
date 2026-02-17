@@ -16,9 +16,9 @@
       <form id="entry-form">
         <div class="grid">
           <label>Date <input required type="date" name="date" id="entry-date" /></label>
-          <label>Start Time <input type="time" name="time_start" /></label>
-          <label>End Time <input type="time" name="time_end" /></label>
-          <label>Minutes (if no start/end) <input type="number" min="0" name="minutes" /></label>
+          <label>Start Time <input type="time" name="time_start" id="time-start" /></label>
+          <label>End Time <input type="time" name="time_end" id="time-end" /></label>
+          <label>Minutes (if no start/end) <input type="number" min="0" name="minutes" id="entry-minutes" /></label>
           <label>Task <input required type="text" name="task" /></label>
           <label>AI Minutes Used <input type="number" min="0" name="ai_minutes" value="0" /></label>
         </div>
@@ -58,6 +58,7 @@
             <th>Date</th>
             <th>Task</th>
             <th>Minutes</th>
+            <th>Hours</th>
             <th>Billable</th>
             <th>Client</th>
           </tr>
@@ -78,6 +79,7 @@
               <th>Date</th>
               <th>Task</th>
               <th>Minutes</th>
+              <th>Hours</th>
               <th>Billable</th>
               <th>Client</th>
               <th>Notes</th>
