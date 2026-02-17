@@ -16,22 +16,32 @@ const tabButtons = document.querySelectorAll('.tab-button');
 const weeklyView = document.querySelector('#weekly-view');
 const rawView = document.querySelector('#raw-view');
 
+let rawDataLoaded = false;
+
 function setMessage(element, text, type) {
   element.textContent = text;
   element.classList.remove('error', 'success');
   if (type) element.classList.add(type);
 }
 
+function formatLocalDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function getToday() {
-  return new Date().toISOString().slice(0, 10);
+  return formatLocalDate(new Date());
 }
 
 function getMonday(dateString) {
-  const date = new Date(`${dateString}T00:00:00`);
-  const day = date.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  const dayOfWeek = date.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   date.setDate(date.getDate() + diff);
-  return date.toISOString().slice(0, 10);
+  return formatLocalDate(date);
 }
 
 function initializeDefaults() {
@@ -50,6 +60,10 @@ function switchTab(tabName) {
     button.classList.toggle('active', active);
     button.setAttribute('aria-selected', String(active));
   });
+
+  if (!weeklyActive && !rawDataLoaded) {
+    loadRawData();
+  }
 }
 
 billableCheckbox.addEventListener('change', () => {
@@ -78,6 +92,7 @@ entryForm.addEventListener('submit', async (event) => {
     setMessage(entryMessage, 'Entry saved.', 'success');
     entryForm.reset();
     entryDateInput.value = getToday();
+    rawDataLoaded = false;
     billableCheckbox.dispatchEvent(new Event('change'));
   } catch (error) {
     setMessage(entryMessage, error.message, 'error');
@@ -139,6 +154,7 @@ async function loadRawData() {
     `).join('');
 
     rawTable.classList.toggle('hidden', data.entries.length === 0);
+    rawDataLoaded = true;
     setMessage(rawMessage, `Loaded ${data.entries.length} CSV row(s).`, 'success');
   } catch (error) {
     setMessage(rawMessage, error.message, 'error');
