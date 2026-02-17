@@ -44,6 +44,11 @@ function getMonday(dateString) {
   return formatLocalDate(date);
 }
 
+function formatHours(minutes) {
+  const value = Number(minutes) || 0;
+  return (value / 60).toFixed(2);
+}
+
 function initializeDefaults() {
   const today = getToday();
   entryDateInput.value = today;
@@ -112,11 +117,16 @@ async function loadWeeklyReport() {
     if (!response.ok) throw new Error(data.error || 'Failed to load report.');
 
     setMessage(reportMessage, 'Weekly report loaded.', 'success');
+    const billableByClientLines = data.billable_by_client.length
+      ? data.billable_by_client.map((row) => `<li>${row.client_name}: ${formatHours(row.minutes)}h</li>`).join('')
+      : '<li>None</li>';
+
     reportSummary.innerHTML = `
       <p><strong>Range:</strong> ${data.week_start} to ${data.week_end}</p>
-      <p><strong>Non-billable total:</strong> ${data.non_billable_minutes} minutes</p>
+      <p><strong>Non-billable total:</strong> ${data.non_billable_minutes} minutes (${formatHours(data.non_billable_minutes)}h)</p>
       <p><strong>Billable total:</strong> ${data.billable_minutes} minutes</p>
-      <p><strong>Billable by client:</strong> ${data.billable_by_client.map((row) => `${row.client_name}: ${row.minutes}m`).join(', ') || 'None'}</p>
+      <p><strong>Billable by client:</strong></p>
+      <ul>${billableByClientLines}</ul>
     `;
 
     reportBody.innerHTML = data.entries.map((entry) => `
