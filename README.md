@@ -6,9 +6,14 @@ A lightweight consultant time tracker with CSV storage.
 - Add time entries with either:
   - start/end time (minutes auto-calculated), or
   - direct minutes entry.
+- Dynamic time form behavior: when start/end time is entered, the minutes input is disabled and cleared to avoid redundant duration input.
 - Capture task, notes, billable flag, client name, and AI usage minutes.
 - Enforce **client name required when billable is true**.
 - Weekly report extraction for quick copy/export into external time systems.
+- Reports UI includes both **Minutes** and **Hours** columns in:
+  - Weekly Summary rows
+  - Raw CSV Data rows
+- Weekly summary totals display minutes and hours for billable and non-billable totals.
 - Weekly CSV download with detail rows + billable totals by client.
 
 ## Data columns
@@ -22,6 +27,11 @@ The CSV storage file (`data/time_entries.csv`) uses:
 - `billable`
 - `client_name`
 - `ai_minutes`
+
+### Minutes column behavior
+- If both `time_start` and `time_end` are provided, `minutes` is saved as blank in CSV to avoid duplicate duration storage.
+- Minutes are derived from start/end during reporting when needed.
+- If start/end are not provided, the entered `minutes` value is stored and used.
 
 ## Run locally
 ```bash
