@@ -46,28 +46,16 @@ function serveFile(response, filePath, contentType) {
   fs.createReadStream(filePath).pipe(response);
 }
 
-function toWeeklyCsv(summary) {
-  const rows = [[
-    'date',
-    'minutes',
-    'billable',
-    'client_name',
-    'task',
-    'notes',
-    'ai_minutes'
-  ].join(',')];
-
-  for (const entry of summary.entries) {
-    rows.push([
-      entry.date,
-      entry.minutes,
-      entry.billable,
-      entry.client_name,
-      entry.task,
-      entry.notes,
-      entry.ai_minutes
-    ].map((value) => String(value).includes(',') ? `"${String(value).replaceAll('"', '""')}"` : value).join(','));
+function toEntriesCsv(entries) {
+  const rows = [REQUIRED_HEADERS.join(',')];
+  for (const entry of entries) {
+    rows.push(formatCsvRow(entry));
   }
+  return `${rows.join('\n')}\n`;
+}
+
+function toWeeklyCsv(summary) {
+  const rows = [toEntriesCsv(summary.entries).trimEnd()];
 
   rows.push('');
   rows.push('Billable by client');
@@ -81,7 +69,7 @@ function toWeeklyCsv(summary) {
   rows.push(`Billable minutes,${summary.billable_minutes}`);
   rows.push(`Non billable minutes,${summary.non_billable_minutes}`);
 
-  return rows.join('\n');
+  return `${rows.join('\n')}\n`;
 }
 
 const server = http.createServer(async (request, response) => {
@@ -116,6 +104,17 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === 'GET' && url.pathname === '/entries') {
     const entries = getAllEntries();
+    const format = (url.searchParams.get('format') || 'json').toLowerCase();
+
+    if (format === 'csv') {
+      response.writeHead(200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="time-entries.csv"'
+      });
+      response.end(toEntriesCsv(entries));
+      return;
+    }
+
     sendJson(response, 200, { entries });
     return;
   }
