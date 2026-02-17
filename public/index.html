@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consultant Time Tracker</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Consultant Time Tracker</h1>
+    <p>Track work entries and export weekly summaries separated by billable client.</p>
+
+    <section class="card">
+      <h2>Add time entry</h2>
+      <form id="entry-form">
+        <div class="grid">
+          <label>Date <input required type="date" name="date" /></label>
+          <label>Start Time <input type="time" name="time_start" /></label>
+          <label>End Time <input type="time" name="time_end" /></label>
+          <label>Minutes (if no start/end) <input type="number" min="0" name="minutes" /></label>
+          <label>Task <input required type="text" name="task" /></label>
+          <label>AI Minutes Used <input type="number" min="0" name="ai_minutes" value="0" /></label>
+        </div>
+
+        <label>Notes <textarea rows="3" name="notes"></textarea></label>
+
+        <label class="inline">
+          <input id="billable" type="checkbox" name="billable" />
+          Billable
+        </label>
+
+        <label id="client-label" class="hidden">Client Name <input type="text" name="client_name" id="client-name" /></label>
+
+        <button type="submit">Save Entry</button>
+      </form>
+      <p id="entry-message" class="message"></p>
+    </section>
+
+    <section class="card">
+      <h2>Weekly report</h2>
+      <div class="inline-controls">
+        <label>Week Start <input id="week-start" type="date" /></label>
+        <button id="load-report" type="button">Load Weekly Report</button>
+        <button id="download-report" type="button">Download CSV</button>
+      </div>
+      <p id="report-message" class="message"></p>
+      <div id="report-summary"></div>
+      <table id="report-table" class="hidden">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Task</th>
+            <th>Minutes</th>
+            <th>Billable</th>
+            <th>Client</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
