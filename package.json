@@ -1,0 +1,10 @@
+{
+  "name": "time-log",
+  "version": "1.0.0",
+  "description": "Consultant time tracking sheet with CSV storage",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  }
+}
